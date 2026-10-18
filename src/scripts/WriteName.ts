@@ -4,13 +4,15 @@ export function writeName() {
   const svg=document.querySelector<SVGSVGElement>('.hero-wordmark svg');
   if(!svg || reduced.matches || (location.hash && location.hash!=='#top')){document.documentElement.classList.remove('will-write');return;}
   const ns='http://www.w3.org/2000/svg';
+  // Cover the full dry-brush edges while each letter is written, so removing
+  // the completed mask cannot reveal missed ink after the final N stroke.
   const paths:[string,number,number][]=[
-    ['M465 150C350 180 95 263 185 305C242 329 470 264 417 354C350 450 100 470 36 585',94,360],
+    ['M465 150C350 180 95 263 185 305C242 329 470 264 417 354C350 450 100 470 36 585',108,360],
     ['M583 210Q525 325 478 438',76,160],['M700 171C640 276 562 419 588 515',72,200],
-    ['M415 367C510 331 657 274 795 273',63,170],['M701 417L832 216',75,150],
+    ['M415 367C510 331 657 274 795 273',63,170],['M701 417L832 216',100,150],
     ['M832 216C818 315 802 410 849 429',72,160],['M637 377L902 310',60,120],
     ['M915 256C880 364 906 382 1068 190',72,180],['M1068 192C1020 360 967 524 720 611',76,290],
-    ['M1443 178C1310 166 1100 378 1164 467C1210 510 1340 435 1412 395',90,330],
+    ['M1443 178C1310 166 1100 378 1164 467C1210 510 1340 435 1412 395',150,330],
     ['M1465 269L1407 439',66,140],['M1590 180C1550 280 1475 422 1505 509',72,210],
     ['M1360 363C1420 356 1580 280 1685 285',65,150],['M1668 258L1785 210',64,100],
     ['M1693 266L1599 437',74,150],['M1634 351L1747 298',65,100],['M1598 437L1768 365',74,140],
