@@ -45,7 +45,7 @@ try {
       assert.equal(await page.locator('.experience h3').first().innerText(),'Sweco');
       assert.equal(await page.locator('.hero-cv').getAttribute('href'),`${prefix}/assets/ShayChen_CV.pdf`);
       assert.equal(await page.locator('.chapter-mark').count(),0);
-      assert((await page.locator('.home-mark img').getAttribute('src')).endsWith('/portrait-badge-128.webp'));
+      assert((await page.locator('.home-mark img').getAttribute('src')).endsWith('/portrait-cutout-128.webp'));
       assert.equal(await page.locator('.hero-center .hero-location').innerText(),locale==='en'?'From Beijing · Based in Leuven, Belgium':'来自北京 · 现居比利时鲁汶');
       for(const number of ['+32456777145','+8618701126817']){
         const phone=page.locator(`.hero a[href="tel:${number}"]`);

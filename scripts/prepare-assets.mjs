@@ -9,11 +9,13 @@ await mkdir(brand, {recursive:true});
 await mkdir(images, {recursive:true});
 // Preserve the approved calligraphy and portrait. Re-trace explicitly with the trace scripts.
 const wordmark = await readFile(join(brand, 'wordmark.svg'));
-const portrait = join(root,'art-source/portrait-badge.png');
-for(const size of [128,256]) await sharp(portrait).resize(size,size).webp({quality:95}).toFile(join(brand,`portrait-badge-${size}.webp`));
-for (const size of [16,32,180,512]) await sharp(portrait).resize(size,size).png().toFile(join(brand, `portrait-badge-${size}.png`));
-const portraitPng=await sharp(portrait).resize(256,256).png().toBuffer();
-await writeFile(join(brand,'portrait-badge.svg'),`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><image width="256" height="256" href="data:image/png;base64,${portraitPng.toString('base64')}"/></svg>`);
+const portrait = await readFile(join(root,'art-source/portrait-cutout.png'));
+// A geometric icon boundary removes residual extraction flecks outside the paper disk.
+const portraitIcon = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1254" height="1254" viewBox="0 0 1254 1254"><defs><clipPath id="disk"><circle cx="624" cy="617" r="555"/></clipPath></defs><image width="1254" height="1254" clip-path="url(#disk)" href="data:image/png;base64,${portrait.toString('base64')}"/></svg>`);
+for(const size of [128,256]) await sharp(portraitIcon).resize(size,size).webp({quality:95}).toFile(join(brand,`portrait-cutout-${size}.webp`));
+for (const size of [16,32,180,512]) await sharp(portraitIcon).resize(size,size).png().toFile(join(brand, `portrait-cutout-${size}.png`));
+const portraitPng=await sharp(portraitIcon).resize(256,256).png().toBuffer();
+await writeFile(join(brand,'portrait-cutout.svg'),`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><image width="256" height="256" href="data:image/png;base64,${portraitPng.toString('base64')}"/></svg>`);
 // Only deterministic photo resizing, crop and colour. Withdrawn images are excluded.
 if (!process.argv.includes('--brand-only')) for (const [name,file] of [['portrait','defalut-pic.jpg'],['nice','chill-pic.jpg'],['band','乐队pic.jpg']]) {
   for (const width of [640,1280,1920]) {
