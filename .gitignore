@@ -1,0 +1,22 @@
+node_modules/
+dist/
+dist-pages/
+.astro/
+.env*
+!.env.example
+qa/*.png
+qa/*.log
+qa/
+art-source/
+.DS_Store
+Thumbs.db
+# Superseded visual drafts remain local.
+public/assets/brand/hero-*
+public/assets/brand/favicon*
+public/assets/brand/portrait-mark.svg
+public/assets/brand/portrait-favicon.svg
+public/assets/brand/portrait-icon-*
+public/assets/brand/monogram.svg
+public/assets/brand/seal.svg
+public/assets/brand/wordmark-strokes.svg
+public/assets/brand/ink-still.svg

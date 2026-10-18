@@ -1,0 +1,8 @@
+---
+interface Props { n: number; title: string; abstract: string }
+const { n, title, abstract } = Astro.props;
+---
+<header class="section-head">
+  <span class="section-number mono">§ {n.toString().padStart(2, '0')}</span>
+  <div><h2 class="ink-heading">{title}</h2><p class="section-abstract">{abstract}</p></div>
+</header>

@@ -1,0 +1,13 @@
+---
+import { identity, type Copy } from '../i18n/content';
+import Icon from './Icon.astro';
+interface Props { t: Copy; full?: boolean; hero?: boolean }
+const { t, full = false, hero = false } = Astro.props;
+---
+<div class:list={['links', { 'links-full': full }]}>
+  <a href={identity.linkedin} target="_blank" rel="noopener noreferrer"><Icon name="linkedin"/>LinkedIn <span class="link-out" aria-hidden="true">↗</span></a>
+  {identity.github.startsWith('{{') ? <span class="pending-link" title={identity.github}><Icon name="github"/>{t.githubPending}<span class="sr-only"> {identity.github}</span></span> : <a href={identity.github} target="_blank" rel="noopener noreferrer"><Icon name="github"/>GitHub <span class="link-out" aria-hidden="true">↗</span></a>}
+  {!hero && <a href={identity.cv} download><Icon name="download"/>{t.cv}</a>}
+  <a href={`mailto:${identity.email}`}><Icon name="mail"/>{t.email} <span class="link-out" aria-hidden="true">↗</span></a>
+  {full && <a href={identity.cv} target="_blank" rel="noopener noreferrer">{t.view} <Icon name="arrow" size={14}/></a>}
+</div>

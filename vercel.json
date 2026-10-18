@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "redirects": [
+    { "source": "/cv", "destination": "/assets/ShayChen_CV.pdf", "permanent": false },
+    { "source": "/", "has": [{"type":"header","key":"accept-language","value":"zh(.*)"}], "destination": "/zh/", "permanent": false },
+    { "source": "/", "destination": "/en/", "permanent": false }
+  ]
+}

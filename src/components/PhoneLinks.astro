@@ -1,0 +1,12 @@
+---
+import { identity, type Locale } from '../i18n/content';
+import Icon from './Icon.astro';
+import Flag from './Flag.astro';
+interface Props { locale:Locale }
+const { locale }=Astro.props;
+---
+<div class="phone-links mono">
+  {identity.phones.map(phone=><a class="phone-number" href={`tel:${phone.href}`} aria-label={`${phone[locale]} · ${phone.number}`}>
+    <span class="phone-country"><Icon name="phone" size={14}/><Flag country={phone.country}/></span><span>{phone.number}</span>
+  </a>)}
+</div>

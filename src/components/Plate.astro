@@ -1,0 +1,16 @@
+---
+import { sitePath } from '../lib/url';
+import type { Copy } from '../i18n/content';
+import Icon from './Icon.astro';
+interface Props { project: Copy['projects'][number]; index: number; t: Copy }
+const { project: p, index, t } = Astro.props;
+---
+<article class={`work-row work-${p.id}`} aria-labelledby={`plate-${p.id}`}>
+  <a class="work-main" href={`#project-${p.id}`} aria-label={`${t.detail}: ${p.title}`}>
+    <span class="work-number mono">0{index+1}</span>
+    <div class="work-title"><p class="mono">{p.category}</p><h3 id={`plate-${p.id}`}>{p.title}</h3><p class="work-summary">{p.summary}</p></div>
+    <div class="work-aside"><span class="mono">{p.year}</span><span class="work-open"><Icon name="arrow" size={25}/></span></div>
+    {p.id==='knoqs' && <span class="work-brand-reveal" aria-hidden="true"><img src={sitePath('/assets/brand/knoqs-logo.png')} width="320" height="140" alt="" /></span>}
+  </a>
+  <div class="work-foot mono"><span>{p.award}</span><span>{p.id==='knoqs'?'NDA':p.id==='data'?'LEUVEN, BE':'MONACO, MC'}</span></div>
+</article>

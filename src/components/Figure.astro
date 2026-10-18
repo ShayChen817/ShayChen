@@ -1,0 +1,14 @@
+---
+import { sitePath } from '../lib/url';
+interface Props { name: string; alt: string; caption: string; number: number; eager?: boolean; class?: string; }
+const { name, alt, caption, number, eager = false, class: className } = Astro.props;
+const sources=(format:string)=>[640,1280,1920].map(width=>`${sitePath(`/assets/img/${name}-${width}.${format}`)} ${width}w`).join(', ');
+---
+<figure class:list={['figure', className]}>
+  <picture>
+    <source type="image/avif" srcset={sources('avif')} sizes="(max-width: 700px) 90vw, 45vw" />
+    <source type="image/webp" srcset={sources('webp')} sizes="(max-width: 700px) 90vw, 45vw" />
+    <img src={sitePath(`/assets/img/${name}-1280.jpg`)} alt={alt} width="1280" height="1600" loading={eager ? 'eager' : 'lazy'} decoding="async" />
+  </picture>
+  <figcaption><span class="fig-number">Fig. {number}</span><span>{caption}</span></figcaption>
+</figure>
