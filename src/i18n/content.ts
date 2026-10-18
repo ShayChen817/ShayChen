@@ -1,4 +1,4 @@
-import { sitePath } from '../lib/url';
+import { cvUrl } from '../lib/cv';
 export type Locale = 'en' | 'zh';
 export const identity = {
   name: 'Shay Chen', chineseName: '陈乐涵', email: 'shay04817@gmail.com',
@@ -7,7 +7,7 @@ export const identity = {
     { country:'cn', number:'+86 18701126817', href:'+8618701126817', en:'China', zh:'中国' }
   ] as const,
   linkedin: 'https://www.linkedin.com/in/shay-chen-a3a1592b4/', github: 'https://github.com/ShayChen817', knoqs: 'https://knoqs.com/',
-  cv: sitePath('/assets/ShayChen_CV.pdf'), band: 'http://slow-erosion.asia/', updated: '2026-10-19'
+  cv: cvUrl, band: 'http://slow-erosion.asia/', updated: '2026-10-19'
 };
 export const chapters = ['abstract', 'engineering', 'works', 'recognition', 'art', 'notes', 'toolkit', 'contact'] as const;
 export const employers = {

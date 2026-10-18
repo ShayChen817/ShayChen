@@ -2,9 +2,11 @@ import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 
 const base = process.env.TEST_URL || 'http://127.0.0.1:4322';
 const prefix = new URL(base).pathname.replace(/\/$/,'');
+const cvVersion = createHash('sha256').update(await readFile('../ShayChen_CV.pdf')).digest('hex').slice(0,12);
 const browser = await chromium.launch({ channel:'msedge', headless:true });
 await mkdir('qa',{recursive:true});
 const results=[];
@@ -43,7 +45,7 @@ try {
       assert.equal(await page.getByText(/Tsinghua University High School|清华大学附属中学/).count(),0);
       assert.equal(await page.locator('.early-stage h3').innerText(),'The Attic');
       assert.equal(await page.locator('.experience h3').first().innerText(),'Sweco');
-      assert.equal(await page.locator('.hero-cv').getAttribute('href'),`${prefix}/assets/ShayChen_CV.pdf`);
+      assert.equal(await page.locator('.hero-cv').getAttribute('href'),`${prefix}/assets/ShayChen_CV.pdf?v=${cvVersion}`);
       assert.equal(await page.locator('.chapter-mark').count(),0);
       assert((await page.locator('.home-mark img').getAttribute('src')).endsWith('/portrait-cutout-128.webp'));
       assert.equal(await page.locator('.hero-center .hero-location').innerText(),locale==='en'?'From Beijing · Based in Leuven, Belgium':'来自北京 · 现居比利时鲁汶');
