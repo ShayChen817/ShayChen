@@ -1,5 +1,7 @@
 import { sitePath } from '../lib/url';
 import { writeName } from './WriteName';
+import { initTide } from './TideTransition';
+initTide();
 writeName();
 const hero = document.querySelector<HTMLElement>('.hero');
 const menu = document.querySelector<HTMLDetailsElement>('#site-index');
@@ -103,18 +105,9 @@ if (hero && !reduced.matches) {
     if (canvas && !reduced.matches) import('./InkShader').then(({ initInk }) => initInk(canvas, hero)).catch(() => {});
   }, finePointer.matches ? 650 : 1400);
 }
-// Desktop retains the full animated opening; the page is already usable before this loads.
+// Ease desktop wheel input without taking ownership of touch or keyboard scrolling.
 if (hero && !reduced.matches && finePointer.matches) {
   window.setTimeout(async () => {
-    const motion = await Promise.all([import('gsap'), import('gsap/ScrollTrigger')]).catch(() => null);
-    if (!motion) return;
-    const [{ gsap }, { ScrollTrigger }] = motion;
-    gsap.registerPlugin(ScrollTrigger);
-    const context = gsap.matchMedia();
-    context.add('(prefers-reduced-motion: no-preference)', () => {
-      gsap.to('.hero-center', {scale:.86,opacity:.3,y:45,ease:'none',scrollTrigger:{trigger:hero,start:'top top',end:'bottom top',scrub:true}});
-      gsap.to('.ink-scene', {opacity:.15,ease:'none',scrollTrigger:{trigger:hero,start:'top top',end:'bottom top',scrub:true}});
-    });
     if (matchMedia('(pointer:fine)').matches) {
       const { default: Lenis } = await import('lenis');
       const lenis = new Lenis({ autoRaf: true, duration:.85, anchors:true, smoothWheel:true });
