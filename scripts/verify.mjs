@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 
 const base = process.env.TEST_URL || 'http://127.0.0.1:4322';
 const prefix = new URL(base).pathname.replace(/\/$/,'');
-const cvVersion = createHash('sha256').update(await readFile('../ShayChen_CV.pdf')).digest('hex').slice(0,12);
+const cvVersion = createHash('sha256').update(await readFile(new URL('../public/assets/ShayChen_CV.pdf', import.meta.url))).digest('hex').slice(0,12);
 const browser = await chromium.launch({ channel:'msedge', headless:true });
 await mkdir('qa',{recursive:true});
 const results=[];
@@ -82,6 +82,7 @@ try {
       await page.locator('#contact').scrollIntoViewIfNeeded();
       await page.waitForTimeout(1000);
       await page.locator('#copy-email').click();
+      await page.waitForFunction(() => /Copied|已复制/.test(document.querySelector('#copy-status')?.textContent || ''));
       assert.match(await page.locator('#copy-status').innerText(),/Copied|已复制/);
       assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),'shay04817@gmail.com');
       assert.equal(await page.locator('[data-language]').first().getAttribute('href'),`${prefix}/en/#contact`);
@@ -89,7 +90,7 @@ try {
       const pdf=await context.request.get(`${base}/assets/ShayChen_CV.pdf`);
       assert.equal(pdf.status(),200);
       assert((await pdf.body()).subarray(0,4).toString()==='%PDF');
-      assert((await pdf.body()).equals(await readFile('../ShayChen_CV.pdf')),'Published CV differs from latest source');
+      assert((await pdf.body()).equals(await readFile(new URL('../public/assets/ShayChen_CV.pdf', import.meta.url))),'Published CV differs from latest source');
       const a11y=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();
       results.push({locale,viewport,metrics,errors,violations:a11y.violations.map(v=>({id:v.id,impact:v.impact,description:v.description,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))}))});
       if(viewport.width===1440){
