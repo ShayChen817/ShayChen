@@ -1,0 +1,3 @@
+# Crawling is not permitted. This is a request, not access control.
+User-agent: *
+Disallow: /

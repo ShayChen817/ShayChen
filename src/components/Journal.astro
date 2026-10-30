@@ -10,6 +10,7 @@ import Plate from './Plate.astro';
 import Icon from './Icon.astro';
 import PhoneLinks from './PhoneLinks.astro';
 import CvIcon from './CvIcon.astro';
+import PrivacyMeta from './PrivacyMeta.astro';
 import '@fontsource/instrument-serif/latin-400.css';
 import '@fontsource/instrument-serif/latin-400-italic.css';
 import '@fontsource/newsreader/latin-400.css';
@@ -22,12 +23,14 @@ const t = copy[locale];
 const wordmark = readFileSync(resolve(process.cwd(), 'public/assets/brand/wordmark.svg'), 'utf8');
 const base = Astro.site || new URL('http://localhost:4321');
 const canonical = new URL(sitePath(`/${locale}/`), base).href;
-const schema = { '@context':'https://schema.org', '@type':'Person', name:identity.name, alternateName:identity.chineseName, url:canonical, email:identity.email, telephone:identity.phones.map(phone=>phone.number), jobTitle:'Engineer, Guitarist & Art Director', knowsAbout:['Electronics','Software engineering','Artificial intelligence','Art direction'], affiliation:[{'@type':'Organization',name:'KU Leuven'},{'@type':'MusicGroup',name:'Slow Erosion'}], sameAs:[identity.linkedin, identity.github] };
+const schema = { '@context':'https://schema.org', '@type':'Person', name:identity.name, alternateName:identity.chineseName, url:canonical, jobTitle:'Engineer, Guitarist & Art Director', knowsAbout:['Electronics','Software engineering','Artificial intelligence','Art direction'], affiliation:[{'@type':'Organization',name:'KU Leuven'},{'@type':'MusicGroup',name:'Slow Erosion'}], sameAs:[identity.linkedin, identity.github] };
 ---
 <!doctype html>
 <html lang={t.lang}>
 <head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta charset="utf-8" />
+  <PrivacyMeta />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <script is:inline>if(!matchMedia('(prefers-reduced-motion: reduce)').matches&&(!location.hash||location.hash==='#top')){document.documentElement.classList.add('will-write');setTimeout(()=>document.documentElement.classList.remove('will-write'),4000);}</script>
   <meta name="theme-color" content="#0C0D10" /><title>{t.title}</title><meta name="description" content={t.description} />
   <link rel="canonical" href={canonical} /><link rel="alternate" hreflang="en" href={new URL(sitePath('/en/'),base).href} /><link rel="alternate" hreflang="zh-CN" href={new URL(sitePath('/zh/'),base).href} /><link rel="alternate" hreflang="x-default" href={new URL(sitePath('/en/'),base).href} />
@@ -88,7 +91,7 @@ const schema = { '@context':'https://schema.org', '@type':'Person', name:identit
           return <article class="experience" style={`--brand-color:${brand.color}`}>
             <div class="experience-date mono"><time>{e.date}</time><span>{e.place}</span></div>
             <div class="experience-content"><div class="experience-heading"><a class="experience-company" href={brand.url} target="_blank" rel="noopener noreferrer"><h3>{e.company}</h3><Icon name="arrow" size={16}/></a><img class="experience-logo" src={sitePath(`/assets/brand/${brand.logo}`)} alt={`${e.company} logo`} width="180" height="60" loading="lazy"/></div>
-              <p class="job-role">{e.role}</p><p class:list={[{'placeholder':e.text.startsWith('{{')}]}>{e.text}</p>{e.stack && <p class="stack mono">{e.stack}</p>}{e.note && <p class="nda">{e.note}</p>}
+              <p class="job-role">{e.role}</p>{e.text && <p>{e.text}</p>}{e.stack && <p class="stack mono">{e.stack}</p>}{e.note && <p class="nda">{e.note}</p>}
             </div>
           </article>;
         })}</div><div class="education"><h3 class="education-label mono">{t.educationLabel}</h3>
@@ -101,18 +104,16 @@ const schema = { '@context':'https://schema.org', '@type':'Person', name:identit
       <section id="works" class="journal-section" data-section={t.nav[2]}>
         <SectionHead n={2} title={t.worksTitle} abstract={t.worksAbstract} />
         <div class="works-list">{t.projects.map((project,index)=><Plate project={project} index={index} t={t} />)}</div>
-        <div class="project-notes">{t.projects.map((p,i)=><details id={`project-${p.id}`} class="project-note"><summary><span class="mono">{['I','II','III'][i]}</span><span>{p.title}</span><span class="plus" aria-hidden="true">＋</span></summary><div class="project-note-body"><p class="project-description">{p.description}</p><p class="mono">{p.stack}</p><p class="project-award">{p.award}</p><p>{p.context}</p><cite>{p.citation}</cite>{p.link && (p.link.startsWith('{{') ? <p class="placeholder mono">{p.link}</p> : <a class="text-link mono" href={p.link} target="_blank" rel="noopener noreferrer">{locale==='en'?'View project':'查看项目'} ↗</a>)}</div></details>)}</div>
-        <p class="placeholder optional-placeholder mono">{t.more}</p>
+        <div class="project-notes">{t.projects.map((p,i)=><details id={`project-${p.id}`} class="project-note"><summary><span class="mono">{['I','II','III'][i]}</span><span>{p.title}</span><span class="plus" aria-hidden="true">＋</span></summary><div class="project-note-body"><p class="project-description">{p.description}</p><p class="mono">{p.stack}</p><p class="project-award">{p.award}</p><p>{p.context}</p><cite>{p.citation}</cite>{p.link && <a class="text-link mono" href={p.link} target="_blank" rel="noopener noreferrer">{locale==='en'?'View project':'查看项目'} ↗</a>}</div></details>)}</div>
       </section>
       <section id="recognition" class="journal-section" data-section={t.nav[3]}>
         <SectionHead n={3} title={t.recognitionTitle} abstract={t.recognitionAbstract} />
-        <div class="body-grid"><aside class="marginalia"><p class="mono">2025—2026</p><p>{locale==='en'?'Two hackathons.\nTwo grand prizes.':'两场黑客松。\n两次总冠军。'}</p></aside><ol class="awards wide-copy">{t.awards.map(([year,title,context],i)=><li tabindex="0"><span class:list={['award-year','mono',{'placeholder':year.startsWith('{{')}]}>{year}</span><div><h3>{i<2 ? <a href={`#project-${i===0?'data':'aqua'}`}>{title}</a> : title}</h3><p>{context}</p>{i<2 && <span class="award-project mono">{i===0?'ASK YOUR DATA / 300+ PARTICIPANTS':'AQUA SEAL / MONACO'} <Icon name="arrow" size={12}/></span>}</div><span class="award-star" aria-hidden="true">✳</span></li>)}</ol></div>
+        <div class="body-grid"><aside class="marginalia"><p class="mono">2025—2026</p><p>{locale==='en'?'Two hackathons.\nTwo grand prizes.':'两场黑客松。\n两次总冠军。'}</p></aside><ol class="awards wide-copy">{t.awards.map(([year,title,context],i)=><li tabindex="0"><span class="award-year mono">{year}</span><div><h3>{i<2 ? <a href={`#project-${i===0?'data':'aqua'}`}>{title}</a> : title}</h3><p>{context}</p>{i<2 && <span class="award-project mono">{i===0?'ASK YOUR DATA / 300+ PARTICIPANTS':'AQUA SEAL / MONACO'} <Icon name="arrow" size={12}/></span>}</div><span class="award-star" aria-hidden="true">✳</span></li>)}</ol></div>
       </section>
       <section id="art" class="journal-section art-section" data-section={t.nav[4]}>
         <SectionHead n={4} title={t.artTitle} abstract={t.artAbstract} />
         <div class="art-layout"><div class="art-copy"><p class="mono">WUHAN, CN / EST. 2023</p><h3 class="band-name ink-heading">Slow<br/><em>Erosion</em><span aria-hidden="true">.</span></h3><a class="band-logo-link" href={identity.band} target="_blank" rel="noopener noreferrer" aria-label={t.bandVisit}><img src={sitePath('/assets/brand/slow-erosion-logo.png')} width="480" height="144" alt="Slow Erosion"/><Icon name="arrow" size={20}/></a><p class="art-role mono">{t.artRole}</p><p class="band-intro">{t.bandIntro}</p><p class="art-statement">{t.artStatement}</p><p class="art-credit mono">{t.artCredit}</p><a class="text-link mono" href={identity.band} target="_blank" rel="noopener noreferrer">{t.bandVisit} <Icon name="arrow" size={14}/></a></div><Figure class="band-photo" name="band" alt={t.bandAlt} caption={t.bandCaption} number={2} /></div>
         <div class="early-stage"><div><p class="mono">{t.earlyStage}</p><h3>The Attic</h3><p class="attic-role">{t.atticRole}</p></div><div class="performance-note"><div class="audience-number" aria-hidden="true">500<span>+</span></div><div><p class="mono">{t.audience}</p><p class="attic-text">{t.atticText}</p></div></div></div>
-        <details class="band-archive"><summary class="mono">{t.galleryPending}<span aria-hidden="true">＋</span></summary><div><p>{t.bandFacts}</p><p class="placeholder">{t.bandWorks}</p><p class="placeholder">{t.bandReleases}</p></div></details>
       </section>
       <section id="notes" class="journal-section notes-section" data-section={t.nav[5]}>
         <SectionHead n={5} title={t.notesTitle} abstract={t.notesAbstract} />
@@ -120,7 +121,7 @@ const schema = { '@context':'https://schema.org', '@type':'Person', name:identit
       </section>
       <section id="toolkit" class="journal-section" data-section={t.nav[6]}>
         <SectionHead n={6} title={t.toolkitTitle} abstract={t.toolkitAbstract} />
-        <div class="toolkit-grid">{skills.map((group,i)=><div class="toolkit-group"><h3 class="mono"><span>{String.fromCharCode(65+i)}.</span> {t.skillLabels[i]}</h3><ul>{group.map(s=><li class:list={[{placeholder:s.startsWith('{{')}]}>{s}</li>)}</ul></div>)}</div>
+        <div class="toolkit-grid">{skills.map((group,i)=><div class="toolkit-group"><h3 class="mono"><span>{String.fromCharCode(65+i)}.</span> {t.skillLabels[i]}</h3><ul>{group.map(s=><li>{s}</li>)}</ul></div>)}</div>
       </section>
       <section id="contact" class="journal-section contact-section" data-section={t.nav[7]}>
         <SectionHead n={7} title={t.contactTitle} abstract={t.contactAbstract} />
