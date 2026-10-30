@@ -11,14 +11,19 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
   const gl = renderer.gl;
   const texture = new Texture(gl, { image:poster, generateMipmaps:false, minFilter:gl.LINEAR, magFilter:gl.LINEAR });
   const geometry = new Triangle(gl);
+  // Six small analytic wave packets, with no accumulating simulation buffers.
+  const ripples = new Float32Array(6 * 4);
+  for (let i = 0; i < 6; i++) ripples[i * 4 + 2] = -10;
   const uniforms = {
     photograph:{value:texture}, time:{value:0}, viewAspect:{value:1}, imageAspect:{value:poster.naturalWidth/poster.naturalHeight},
     pointer:{value:new Vec2(-2,-2)}, impulse:{value:new Vec2()}, tide:{value:0},
+    ripples:{value:ripples},
   };
   const program = new Program(gl, {
     vertex:'attribute vec2 uv; attribute vec2 position; varying vec2 vUv; void main(){vUv=uv;gl_Position=vec4(position,0.,1.);}',
     fragment:`precision highp float;
       varying vec2 vUv; uniform sampler2D photograph; uniform float time,viewAspect,imageAspect,tide; uniform vec2 pointer,impulse;
+      uniform vec4 ripples[6];
       float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
       float noise(vec2 p){
         vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f);
@@ -41,16 +46,34 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
         float wake=exp(-dot(delta,delta)*13.);
         // A diagonal shoreline with multiple frequencies, rather than a straight wipe.
         vec2 sea=vec2(vUv.x*viewAspect,vUv.y);
+        // Long, crossing surface waves keep the water alive even without input.
+        // They are separate from the scroll tide, so holding still never advances it.
+        float surfacePhase=sea.x*9.+sea.y*14.-time*.48;
+        float crossPhase=sea.x*-6.+sea.y*11.-time*.32;
+        float surface=sin(surfacePhase+flow.x*.45)*.65+sin(crossPhase)*.35;
+        vec2 surfaceFlow=vec2(cos(surfacePhase)*.7-sin(crossPhase)*.3,surface);
         float turbulence=fbm(sea*4.+vec2(-t*.6,t*.3));
         float shore=advance*1.65-.28 + .105*sin(sea.x*3.2+t)
           + .045*sin(sea.x*8.5-t*1.7) + (turbulence-.5)*.19;
         float depth=shore-vUv.y;
         float crest=exp(-abs(depth)*25.)*energy;
         float swell=sin(depth*25.-t*4.)*exp(-abs(depth)*5.)*energy;
-        uv+=(flow*.0035+impulse*cover*wake*.012);
+        uv+=(flow*.0065+surfaceFlow*cover*.005+impulse*cover*wake*.012);
         uv=(uv-.5)/(1.+energy*.18)+.5;
         uv.y+=advance*.12+energy*(flow.y*.045+swell*.065);
         uv.x+=energy*flow.x*.035;
+        float rippleLight=0.;
+        for(int i=0;i<6;i++){
+          float age=max(0.,time-ripples[i].z)*.5;
+          vec2 offset=(vUv-ripples[i].xy)*vec2(viewAspect,1.);
+          float radius=length(offset);
+          float life=smoothstep(0.,.05,age)*(1.-smoothstep(.8,1.7,age));
+          float envelope=exp(-pow((radius-age*.23)/.065,2.))*exp(-age*1.7)*life*ripples[i].w;
+          float phase=radius*115.-age*25.;
+          vec2 direction=offset/max(radius,.001);
+          uv+=direction/vec2(viewAspect,1.)*sin(phase)*envelope*.013*(1.-advance);
+          rippleLight+=cos(phase)*envelope*.10;
+        }
         vec3 ink=texture2D(photograph,clamp(uv,vec2(.001),vec2(.999))).rgb;
         // Cold mineral blue and silver foam stay within the original ink palette.
         float veins=fbm(sea*vec2(14.,28.)+vec2(t,-t*2.));
@@ -64,6 +87,8 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
         color+=foam*vec3(.40,.44,.43)*1.05;
         color+=lace*vec3(.23,.29,.30)*.5;
         color+=vec3(.055,.08,.10)*max(0.,swell);
+        color+=vec3(.43,.57,.65)*rippleLight*(1.-advance);
+        color+=vec3(.025,.035,.042)*surface*(1.-advance);
         color=mix(color,deep,smoothstep(.82,1.,tide));
         gl_FragColor=vec4(color,1.);
       }`,
@@ -72,11 +97,25 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
   const scene = new Mesh(gl,{geometry,program});
   canvas.dataset.initialized='true';
   let frame=0, visible=false, destroyed=false, last=0, elapsed=0, ticks=0;
+  let rippleIndex=0, rippleCount=0, lastRipple=-10;
+  const lastRipplePosition=new Vec2(-2,-2);
   const previous=new Vec2(-2,-2), targetImpulse=new Vec2();
   function pointerMove(event:PointerEvent){
+    if (event.pointerType !== 'mouse' || reduced.matches) return;
+    if (event.target instanceof Element && event.target.closest('.name-stage')) {
+      pointerLeave();
+      return;
+    }
     const r=hero.getBoundingClientRect(),x=(event.clientX-r.left)/r.width,y=1-(event.clientY-r.top)/r.height;
     if(previous.x>=0) targetImpulse.set(Math.max(-.7,Math.min(.7,(x-previous.x)*14)),Math.max(-.7,Math.min(.7,(y-previous.y)*14)));
     previous.set(x,y);uniforms.pointer.value.set(x,y);
+    const dx=(x-lastRipplePosition.x)*r.width/r.height,dy=y-lastRipplePosition.y;
+    if (elapsed-lastRipple>.3 && dx*dx+dy*dy>.0005) {
+      ripples.set([x,y,elapsed,.8],rippleIndex*4);
+      rippleIndex=(rippleIndex+1)%6;
+      lastRipple=elapsed;lastRipplePosition.set(x,y);
+      canvas.dataset.rippleCount=String(++rippleCount);
+    }
   }
   function pointerLeave(){previous.set(-2,-2);targetImpulse.set(0,0);}
   function resize(){
@@ -90,7 +129,7 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
     frame=0;
     if(!visible||document.hidden||reduced.matches||destroyed){canvas.dataset.running='false';return;}
     const tide=Number(hero.dataset.tideProgress || 0);
-    const moving=Math.abs(tide-uniforms.tide.value)>.0001;
+    const moving=Math.abs(tide-uniforms.tide.value)>.0001 || elapsed-lastRipple<3.4;
     if(now-last>=(moving?15:40)){
       elapsed+=Math.min((now-last)/1000,.06);last=now;
       uniforms.time.value=elapsed;
@@ -104,7 +143,10 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
     if(frame)cancelAnimationFrame(frame);frame=0;
     const active=visible&&!document.hidden&&!reduced.matches&&!destroyed;
     canvas.dataset.running=String(active);
-    if(reduced.matches)canvas.classList.remove('ready');
+    if(reduced.matches){
+      canvas.classList.remove('ready');
+      ripples.fill(0);pointerLeave();lastRipple=-10;
+    }
     if(active){last=performance.now();frame=requestAnimationFrame(render);}
   }
   const observer=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;sync();});
