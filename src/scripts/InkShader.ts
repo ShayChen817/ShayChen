@@ -58,10 +58,31 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
         float depth=shore-vUv.y;
         float crest=exp(-abs(depth)*25.)*energy;
         float swell=sin(depth*25.-t*4.)*exp(-abs(depth)*5.)*energy;
+        // A closer wave follows the first with its own speed and opposing curl.
+        float nearAdvance=smoothstep(.18,.98,tide);
+        float nearEnergy=sin(nearAdvance*3.14159265);
+        float nearShore=nearAdvance*1.65-.30
+          -.085*sin(sea.x*4.1-t*.8)+.035*sin(sea.x*11.+t*1.3)
+          +(turbulence-.5)*.13;
+        float nearDepth=nearShore-vUv.y;
+        float nearCrest=exp(-abs(nearDepth)*31.)*nearEnergy;
+        float nearSwell=sin(nearDepth*32.+t*3.)*exp(-abs(nearDepth)*7.)*nearEnergy;
+        // The final wave waits until the latter half, leaving space between crests.
+        float trailingAdvance=smoothstep(.44,1.,tide);
+        float trailingEnergy=sin(trailingAdvance*3.14159265);
+        float trailingShore=trailingAdvance*1.65-.32
+          +.075*sin(sea.x*2.7+t*.55)-.03*sin(sea.x*9.-t)
+          +(turbulence-.5)*.11;
+        float trailingDepth=trailingShore-vUv.y;
+        float trailingCrest=exp(-abs(trailingDepth)*34.)*trailingEnergy;
+        float trailingSwell=sin(trailingDepth*28.-t*2.)
+          *exp(-abs(trailingDepth)*8.)*trailingEnergy;
         uv+=(flow*.0065+surfaceFlow*cover*.005+impulse*cover*wake*.012);
         uv=(uv-.5)/(1.+energy*.18)+.5;
         uv.y+=advance*.12+energy*(flow.y*.045+swell*.065);
         uv.x+=energy*flow.x*.035;
+        uv+=vec2(-nearSwell*.014,nearSwell*.032)*cover;
+        uv+=vec2(trailingSwell*.009,trailingSwell*.024)*cover;
         float rippleLight=0.;
         for(int i=0;i<6;i++){
           float age=max(0.,time-ripples[i].z)*.5;
@@ -89,6 +110,20 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
         color+=vec3(.055,.08,.10)*max(0.,swell);
         color+=vec3(.43,.57,.65)*rippleLight*(1.-advance);
         color+=vec3(.025,.035,.042)*surface*(1.-advance);
+        float nearFoam=nearCrest*smoothstep(.22,.67,1.-veins);
+        float nearLace=exp(-abs(nearDepth+.008-veins*.025)*110.)*nearEnergy;
+        color=mix(color,color*.72+deep*.28,
+          smoothstep(-.02,.12,nearDepth)*nearEnergy*.45);
+        color+=vec3(.16,.24,.28)*exp(-abs(nearDepth-.04)*16.)*nearEnergy;
+        color+=vec3(.48,.54,.55)*nearFoam*.85+vec3(.22,.30,.34)*nearLace*.55;
+        color+=vec3(.035,.055,.065)*max(0.,nearSwell);
+        float trailingFoam=trailingCrest*smoothstep(.25,.7,veins);
+        float trailingLace=exp(-abs(trailingDepth-.01+veins*.02)*115.)*trailingEnergy;
+        color=mix(color,color*.76+deep*.24,
+          smoothstep(-.02,.1,trailingDepth)*trailingEnergy*.4);
+        color+=vec3(.12,.19,.23)*exp(-abs(trailingDepth-.035)*18.)*trailingEnergy;
+        color+=vec3(.35,.45,.49)*trailingFoam*.8
+          +vec3(.17,.25,.29)*trailingLace*.5;
         color=mix(color,deep,smoothstep(.82,1.,tide));
         gl_FragColor=vec4(color,1.);
       }`,

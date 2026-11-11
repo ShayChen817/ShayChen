@@ -43,7 +43,7 @@ const schema = { '@context':'https://schema.org', '@type':'Person', name:identit
 </head>
 <body data-locale={locale}>
   <a class="skip-link" href="#abstract">{t.skip}</a>
-  <svg class="filter-defs" aria-hidden="true"><defs><filter id="ink-bleed" x="-5%" y="-10%" width="110%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="noise" /><feDisplacementMap in="SourceGraphic" in2="noise" scale="1.3" xChannelSelector="R" yChannelSelector="G" /><feGaussianBlur stdDeviation=".12" /></filter><filter id="tidal-refraction" x="-20%" y="-30%" width="140%" height="160%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".008 .024" numOctaves="2" seed="12" result="liquid"/><feDisplacementMap id="tide-displacement" in="SourceGraphic" in2="liquid" scale="0" xChannelSelector="R" yChannelSelector="B"/></filter></defs></svg>
+  <svg class="filter-defs" aria-hidden="true"><defs><filter id="ink-bleed" x="-5%" y="-10%" width="110%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="noise" /><feDisplacementMap in="SourceGraphic" in2="noise" scale="1.3" xChannelSelector="R" yChannelSelector="G" /><feGaussianBlur stdDeviation=".12" /></filter><filter id="tidal-refraction" x="-20%" y="-30%" width="140%" height="160%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".008 .024" numOctaves="2" seed="12" result="liquid"/><feDisplacementMap id="tide-displacement" in="SourceGraphic" in2="liquid" scale="0" xChannelSelector="R" yChannelSelector="B"/></filter><filter id="name-refraction" x="-10%" y="-20%" width="120%" height="140%"><feTurbulence type="fractalNoise" baseFrequency=".009 .025" numOctaves="2" seed="8" result="name-flow"/><feDisplacementMap id="name-displacement" in="SourceGraphic" in2="name-flow" scale="0" xChannelSelector="R" yChannelSelector="B"/></filter></defs></svg>
   <header class="running-head">
     <a class="home-mark" href="#top" aria-label="Shay Chen / 陈乐涵"><img src={sitePath('/assets/brand/portrait-cutout-128.webp')} width="44" height="44" alt="" /><span>SHAY CHEN</span></a>
     <span class="running-section mono" aria-live="off">ENGINEER & GUITARIST</span>
@@ -61,14 +61,12 @@ const schema = { '@context':'https://schema.org', '@type':'Person', name:identit
     <div class="opening-sequence">
     <section id="top" class="hero" aria-labelledby="hero-title">
       <div class="ink-scene" aria-hidden="true"><picture><source media="(max-width:700px)" srcset={sitePath('/assets/brand/ink-photo-mobile.webp')}/><img class="hero-poster" src={sitePath('/assets/brand/ink-photo.webp')} width="1672" height="941" alt="" fetchpriority="high"/></picture><canvas id="ink-canvas"></canvas></div>
-      <div class="hero-photo hero-photo-portrait" aria-hidden="true"><img src={sitePath('/assets/img/portrait-1280.webp')} width="1280" height="1600" alt="" loading="lazy" /></div>
-      <div class="hero-photo hero-photo-nice" aria-hidden="true"><img src={sitePath('/assets/img/nice-1280.webp')} width="1280" height="1600" alt="" loading="lazy" /></div>
       <div class="hero-top mono"><span>{t.journal}</span><span>{t.edition}</span></div>
       <div class="hero-center">
         <p class="hero-kicker mono"><span class="tiny-rule"></span> ENGINEERING <span class="hero-and">&</span> MUSIC <span class="tiny-rule"></span></p>
-        <div class="name-stage">
+        <div class="name-stage" style={`--name-mask:url("${sitePath('/assets/brand/wordmark.svg')}")`}>
           <h1 id="hero-title"><span class="sr-only">Shay Chen · 陈乐涵</span><span class="hero-wordmark" aria-hidden="true" set:html={wordmark} /></h1>
-          <div class="name-hover-zones"><button class="name-zone" data-portrait="portrait" aria-label={locale==='en'?'Show portrait of Shay Chen':'查看陈乐涵的肖像'} aria-pressed="false"></button><button class="name-zone" data-portrait="nice" aria-label={locale==='en'?'Show Shay in Nice':'查看陈乐涵在尼斯的照片'} aria-pressed="false"></button></div>
+          <button class="name-ink-trigger" type="button" aria-label={locale==='en'?'Stir the ink lettering':'让名字泛起墨光'} aria-pressed="false" hidden></button>
         </div>
         <div class="hero-role"><p>{t.role}</p><a class="hero-cv" href={identity.cv} download aria-label={t.cv}><CvIcon/></a></div>
         <p class="hero-name">{identity.chineseName}</p>
