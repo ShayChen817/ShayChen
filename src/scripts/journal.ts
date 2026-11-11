@@ -1,8 +1,10 @@
 import { sitePath } from '../lib/url';
 import { writeName } from './WriteName';
 import { initTide } from './TideTransition';
+import { initNameCurrent } from './NameCurrent';
 initTide();
 writeName();
+initNameCurrent();
 const hero = document.querySelector<HTMLElement>('.hero');
 const menu = document.querySelector<HTMLDetailsElement>('#site-index');
 const summary = menu?.querySelector('summary');
@@ -10,26 +12,6 @@ const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-sectio
 const heading = document.querySelector<HTMLElement>('.running-section');
 const progress = document.querySelector<HTMLElement>('.reading-progress');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-const nameStage = document.querySelector<HTMLElement>('.name-stage');
-const nameZones = document.querySelectorAll<HTMLButtonElement>('.name-zone');
-function showPhoto(name?: string) {
-  if (!nameStage) return;
-  nameStage.dataset.active = name || '';
-  if (hero) hero.dataset.photo = name || '';
-  nameZones.forEach(zone => zone.setAttribute('aria-pressed', String(zone.dataset.portrait === name)));
-}
-nameZones.forEach(zone => {
-  zone.addEventListener('pointerenter', event => { if(event.pointerType==='mouse') showPhoto(zone.dataset.portrait); });
-  zone.addEventListener('pointerleave', event => { if(event.pointerType==='mouse') showPhoto(); });
-  zone.addEventListener('focus', () => showPhoto(zone.dataset.portrait));
-  zone.addEventListener('blur', () => showPhoto());
-  zone.addEventListener('click', event => { if((event as PointerEvent).pointerType==='touch') showPhoto(zone.dataset.portrait); });
-});
-document.addEventListener('pointerdown', event => {
-  if (!(event.target instanceof Element) || !event.target.closest('.name-stage')) showPhoto();
-});
-document.addEventListener('keydown', event => { if(event.key==='Escape') showPhoto(); });
-
 function keepSection() {
   const hash = location.hash || '';
   document.querySelectorAll<HTMLAnchorElement>('[data-language]').forEach(a => { a.href = sitePath(`/${a.dataset.language}/${hash}`); });

@@ -58,17 +58,15 @@ try {
       }
       assert.equal(await page.locator('img[src*="stage-"], img[src*="-color.webp"], img[src*="seal.svg"]').count(),0);
       assert(await page.locator('.hero a[href="https://github.com/ShayChen817"]').count()>0);
-      for(const side of ['portrait','nice']){
-        const trigger=page.locator(`.name-zone[data-portrait="${side}"]`);
-        if(viewport.width<700) await trigger.tap(); else await trigger.hover();
-        await page.waitForTimeout(900);
-        assert.equal(await page.locator('.hero').getAttribute('data-photo'),side);
-        const opacity=await page.locator(`.hero-photo-${side}`).evaluate(el=>Number(getComputedStyle(el).opacity));
-        assert(opacity>.25 && opacity<.5);
-        await page.screenshot({path:`qa/${locale}-${viewport.width}-hover-${side}.png`});
-      }
+      const trigger=page.locator('.name-ink-trigger');
+      if(viewport.width<700) await trigger.tap(); else await trigger.hover();
+      await page.waitForTimeout(900);
+      assert.equal(await page.locator('.name-stage').getAttribute('data-ink-active'),'true');
+      assert.equal(await page.locator('.hero-photo').count(),0);
+      assert(Number(await page.locator('#name-displacement').getAttribute('scale'))>0);
+      await page.screenshot({path:`qa/${locale}-${viewport.width}-name-ink.png`});
       await page.keyboard.press('Escape');
-      assert.equal(await page.locator('.hero').getAttribute('data-photo'),'');
+      assert.equal(await trigger.getAttribute('aria-pressed'),'false');
       await page.locator('#works').scrollIntoViewIfNeeded();
       await page.waitForTimeout(350);
       await page.screenshot({path:`qa/${locale}-${viewport.width}-works.png`});
