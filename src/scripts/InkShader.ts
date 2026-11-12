@@ -59,7 +59,7 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
         float crest=exp(-abs(depth)*25.)*energy;
         float swell=sin(depth*25.-t*4.)*exp(-abs(depth)*5.)*energy;
         // A closer wave follows the first with its own speed and opposing curl.
-        float nearAdvance=smoothstep(.18,.98,tide);
+        float nearAdvance=smoothstep(.26,.98,tide);
         float nearEnergy=sin(nearAdvance*3.14159265);
         float nearShore=nearAdvance*1.65-.30
           -.085*sin(sea.x*4.1-t*.8)+.035*sin(sea.x*11.+t*1.3)
