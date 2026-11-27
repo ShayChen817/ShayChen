@@ -132,3 +132,24 @@ html[lang='zh-CN'] .band-intro{font-size:16px;line-height:1.9}
 .name-stage[data-ink-active='true'] .hero-wordmark::after{opacity:.62}
 @media(max-width:700px){.hero-wordmark::after{background:radial-gradient(ellipse 120px 75px at var(--name-x) var(--name-y),#eff7f5,#89b2c2 24%,transparent 72%)}}
 @media(prefers-reduced-motion:reduce){.name-stage .hero-wordmark{filter:none!important}.hero-wordmark::after{display:none}.name-ink-trigger{display:none}}
+
+.experience-story-title {
+  margin: 1.3em 0 .45em;
+  font-family: inherit;
+  font-size: clamp(1.35rem, 2.2vw, 2rem);
+  font-weight: normal;
+}
+.project-note-body { max-width: 100%; }
+.project-facts { color: var(--rice-dim); }
+.project-facts > p { margin: 0 0 .6em; }
+@media (min-width: 800px) {
+  .project-note-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+    gap: 1rem clamp(2rem, 5vw, 5rem);
+    align-items: start;
+  }
+  .project-note-body > p { margin: 0; max-width: 58ch; }
+  .project-note-body > cite { grid-column: 1; }
+  .project-note-body > a { justify-self: start; }
+}
