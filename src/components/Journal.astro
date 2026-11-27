@@ -93,7 +93,8 @@ const schema = { '@context':'https://schema.org', '@type':'Person', name:identit
           return <article class="experience" style={`--brand-color:${brand.color}`}>
             <div class="experience-date mono"><time>{e.date}</time><span>{e.place}</span></div>
             <div class="experience-content"><div class="experience-heading"><a class="experience-company" href={brand.url} target="_blank" rel="noopener noreferrer"><h3>{e.company}</h3><Icon name="arrow" size={16}/></a><img class="experience-logo" src={sitePath(`/assets/brand/${brand.logo}`)} alt={`${e.company} logo`} width="180" height="60" loading="lazy"/></div>
-              <p class="job-role">{e.role}</p>{e.text && <p>{e.text}</p>}{e.stack && <p class="stack mono">{e.stack}</p>}{e.note && <p class="nda">{e.note}</p>}
+              <p class="job-role">{e.role}</p>{'headline' in e && <h4 class="experience-story-title">{e.headline}</h4>}
+              {e.text && e.text.split('\n\n').map(paragraph => <p>{paragraph}</p>)}{e.stack && <p class="stack mono">{e.stack}</p>}{e.note && <p class="nda">{e.note}</p>}
             </div>
           </article>;
         })}</div><div class="education"><h3 class="education-label mono">{t.educationLabel}</h3>
@@ -106,7 +107,7 @@ const schema = { '@context':'https://schema.org', '@type':'Person', name:identit
       <section id="works" class="journal-section" data-section={t.nav[2]}>
         <SectionHead n={2} title={t.worksTitle} abstract={t.worksAbstract} />
         <div class="works-list">{t.projects.map((project,index)=><Plate project={project} index={index} t={t} />)}</div>
-        <div class="project-notes">{t.projects.map((p,i)=><details id={`project-${p.id}`} class="project-note"><summary><span class="mono">{['I','II','III'][i]}</span><span>{p.title}</span><span class="plus" aria-hidden="true">＋</span></summary><div class="project-note-body"><p class="project-description">{p.description}</p><p class="mono">{p.stack}</p><p class="project-award">{p.award}</p><p>{p.context}</p><cite>{p.citation}</cite>{p.link && <a class="text-link mono" href={p.link} target="_blank" rel="noopener noreferrer">{locale==='en'?'View project':'查看项目'} ↗</a>}</div></details>)}</div>
+        <div class="project-notes">{t.projects.map((p,i)=><details id={`project-${p.id}`} class="project-note"><summary><span class="mono">{['I','II','III'][i]}</span><span>{p.title}</span><span class="plus" aria-hidden="true">＋</span></summary><div class="project-note-body"><p class="project-description">{p.description}</p><div class="project-facts"><p class="mono">{p.stack}</p><p class="project-award">{p.award}</p><p>{p.context}</p></div><cite>{p.citation}</cite>{p.link && <a class="text-link mono" href={p.link} target="_blank" rel="noopener noreferrer">{locale==='en'?'View project':'查看项目'} ↗</a>}</div></details>)}</div>
       </section>
       <section id="recognition" class="journal-section" data-section={t.nav[3]}>
         <SectionHead n={3} title={t.recognitionTitle} abstract={t.recognitionAbstract} />
