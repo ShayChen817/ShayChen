@@ -69,7 +69,7 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
         float nearCrest=exp(-abs(nearDepth)*31.)*nearEnergy;
         float nearSwell=sin(nearDepth*32.+t*3.)*exp(-abs(nearDepth)*7.)*nearEnergy;
         // The final wave waits until the latter half, leaving space between crests.
-        float trailingAdvance=smoothstep(.44,1.,tide);
+        float trailingAdvance=smoothstep(.57,1.,tide);
         float trailingEnergy=sin(trailingAdvance*3.14159265);
         float portrait=1.-smoothstep(.65,1.05,viewAspect);
         float trailingShore=trailingAdvance*mix(1.47,1.34,portrait)-.30

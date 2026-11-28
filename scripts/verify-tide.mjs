@@ -22,15 +22,15 @@ try {
    const distance=el.offsetHeight-el.querySelector('.hero').offsetHeight;
    return {distance,leadDistance:distance-el.offsetHeight*tail/(base+tail)};
   });
-  assert(distance-leadDistance>=viewport.height*.64);
+  assert(distance-leadDistance>=viewport.height*.89);
   assert(distance>300);
   for(const fraction of [0,.2,.42,.66,.86,1.1]) {
    await page.evaluate(y=>window.scrollTo({top:y,behavior:'instant'}),distance*fraction);
    await page.waitForTimeout(850);
    const state=await page.locator('.hero').evaluate(el=>({progress:Number(el.dataset.tideProgress),lead:Number(el.dataset.leadTideProgress),top:el.getBoundingClientRect().top,centerOpacity:Number(getComputedStyle(el.querySelector('.hero-center')).opacity)}));
    const y=distance*fraction;
-   const split=.44*leadDistance;
-   const expected=y<=split ? y/leadDistance : Math.min(1,.44+.56*(y-split)/(distance-split));
+   const split=.57*leadDistance;
+   const expected=y<=split ? y/leadDistance : Math.min(1,.57+.43*(y-split)/(distance-split));
    assert(Math.abs(state.progress-expected)<.025,JSON.stringify(state));
    assert(Math.abs(state.lead-Math.min(y/leadDistance,1))<.025,JSON.stringify(state));
    if(fraction<1)assert(Math.abs(state.top)<2,'Hero must hold the frame');
