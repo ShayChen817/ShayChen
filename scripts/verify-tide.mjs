@@ -22,7 +22,8 @@ try {
    const distance=el.offsetHeight-el.querySelector('.hero').offsetHeight;
    return {distance,leadDistance:distance-el.offsetHeight*tail/(base+tail)};
   });
-  assert(distance-leadDistance>=viewport.height*.89);
+  assert(Math.abs((distance-leadDistance)/viewport.height-.95)<.01);
+  assert(Math.abs(distance/viewport.height-3.17222)<.01);
   assert(distance>300);
   for(const fraction of [0,.2,.42,.66,.86,1.1]) {
    await page.evaluate(y=>window.scrollTo({top:y,behavior:'instant'}),distance*fraction);

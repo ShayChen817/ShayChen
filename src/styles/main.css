@@ -113,7 +113,6 @@ html[lang='zh-CN'] .band-intro{font-size:16px;line-height:1.9}
   .tide-enabled + .journal-body .abstract-section{background:linear-gradient(0deg,var(--ink) 65%,transparent)}
 }
 @media(max-width:700px) and (prefers-reduced-motion:no-preference){
-  .opening-sequence.tide-enabled{--tide-base:277.7778;--tide-tail:90;margin-bottom:-20svh}
   .tide-enabled .hero{min-height:0}
   .tide-enabled .tide-caption{gap:16px;top:49%}
   .tide-caption .mono{font-size:8px;letter-spacing:.08em}
@@ -122,6 +121,8 @@ html[lang='zh-CN'] .band-intro{font-size:16px;line-height:1.9}
 }
 @media (pointer: coarse) and (prefers-reduced-motion: no-preference) {
   .tide-enabled .hero-center { filter: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
   .tide-enabled .ink-scene:not(:has(canvas.ready))::before {
     content: '';
     position: absolute;
