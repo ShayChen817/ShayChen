@@ -13,7 +13,7 @@ export function initTide() {
   let origin = 0;
   let distance = 1;
   let leadDistance = 1;
-  const tailStart = .44;
+  const tailStart = .57;
   const clamp = (n: number) => Math.max(0, Math.min(1, n));
   const smooth = (a: number, b: number, n: number) => {
     const p = clamp((n - a) / (b - a));
