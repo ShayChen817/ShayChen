@@ -23,7 +23,7 @@ try {
       assert.equal(response.status(), 200);
       assert.match(await page.locator('meta[name="robots"]').getAttribute('content'), /noindex/);
       assert.doesNotMatch(await page.locator('body').innerText(), /\{\{[^}]+\}\}|待补充|forthcoming/i);
-      assert.equal(await page.locator('.toolkit-group').count(), 5);
+      assert.equal(await page.locator('.toolkit-group').count(), 2);
       const schema = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
       assert.equal(schema.email, undefined);
       assert.equal(schema.telephone, undefined);

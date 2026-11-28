@@ -2,6 +2,7 @@ import { Renderer, Program, Triangle, Mesh, Texture, Vec2 } from 'ogl';
 
 /** Ambient ink currents become a refractive shoreline during the opening scroll shot. */
 export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
+  const touch = matchMedia('(pointer: coarse)');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const poster = hero.querySelector<HTMLImageElement>('.hero-poster');
   if (!poster || reduced.matches || canvas.dataset.initialized) return;
@@ -16,13 +17,13 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
   for (let i = 0; i < 6; i++) ripples[i * 4 + 2] = -10;
   const uniforms = {
     photograph:{value:texture}, time:{value:0}, viewAspect:{value:1}, imageAspect:{value:poster.naturalWidth/poster.naturalHeight},
-    pointer:{value:new Vec2(-2,-2)}, impulse:{value:new Vec2()}, tide:{value:0},
+    pointer:{value:new Vec2(-2,-2)}, impulse:{value:new Vec2()}, tide:{value:0}, leadTide:{value:0},
     ripples:{value:ripples},
   };
   const program = new Program(gl, {
     vertex:'attribute vec2 uv; attribute vec2 position; varying vec2 vUv; void main(){vUv=uv;gl_Position=vec4(position,0.,1.);}',
     fragment:`precision highp float;
-      varying vec2 vUv; uniform sampler2D photograph; uniform float time,viewAspect,imageAspect,tide; uniform vec2 pointer,impulse;
+      varying vec2 vUv; uniform sampler2D photograph; uniform float time,viewAspect,imageAspect,tide,leadTide; uniform vec2 pointer,impulse;
       uniform vec4 ripples[6];
       float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
       float noise(vec2 p){
@@ -38,7 +39,7 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
         vec2 cover=vec2(min(1.,viewAspect/imageAspect),min(1.,imageAspect/viewAspect));
         vec2 uv=(vUv-.5)*cover/1.025+.5;
         float t=time*.12;
-        float advance=smoothstep(.02,.94,tide);
+        float advance=smoothstep(.02,.94,leadTide);
         float energy=sin(advance*3.14159265);
         vec2 flow=vec2(sin(uv.y*9.+t)*cos(uv.x*5.-t*.7),cos(uv.x*8.-t*.8)*sin(uv.y*6.+t*.5));
         flow+=.35*vec2(sin(uv.y*19.-t*.6+uv.x*7.),cos(uv.x*17.+t*.5-uv.y*5.));
@@ -59,7 +60,7 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
         float crest=exp(-abs(depth)*25.)*energy;
         float swell=sin(depth*25.-t*4.)*exp(-abs(depth)*5.)*energy;
         // A closer wave follows the first with its own speed and opposing curl.
-        float nearAdvance=smoothstep(.26,.98,tide);
+        float nearAdvance=smoothstep(.26,.98,leadTide);
         float nearEnergy=sin(nearAdvance*3.14159265);
         float nearShore=nearAdvance*1.65-.30
           -.085*sin(sea.x*4.1-t*.8)+.035*sin(sea.x*11.+t*1.3)
@@ -70,11 +71,12 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
         // The final wave waits until the latter half, leaving space between crests.
         float trailingAdvance=smoothstep(.44,1.,tide);
         float trailingEnergy=sin(trailingAdvance*3.14159265);
-        float trailingShore=trailingAdvance*1.65-.32
+        float portrait=1.-smoothstep(.65,1.05,viewAspect);
+        float trailingShore=trailingAdvance*mix(1.47,1.34,portrait)-.30
           +.075*sin(sea.x*2.7+t*.55)-.03*sin(sea.x*9.-t)
           +(turbulence-.5)*.11;
         float trailingDepth=trailingShore-vUv.y;
-        float trailingCrest=exp(-abs(trailingDepth)*34.)*trailingEnergy;
+        float trailingCrest=exp(-abs(trailingDepth)*mix(34.,26.,portrait))*trailingEnergy;
         float trailingSwell=sin(trailingDepth*28.-t*2.)
           *exp(-abs(trailingDepth)*8.)*trailingEnergy;
         uv+=(flow*.0065+surfaceFlow*cover*.005+impulse*cover*wake*.012);
@@ -122,9 +124,9 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
         color=mix(color,color*.76+deep*.24,
           smoothstep(-.02,.1,trailingDepth)*trailingEnergy*.4);
         color+=vec3(.12,.19,.23)*exp(-abs(trailingDepth-.035)*18.)*trailingEnergy;
-        color+=vec3(.35,.45,.49)*trailingFoam*.8
+        color+=vec3(.35,.45,.49)*trailingFoam*mix(.8,1.12,portrait)
           +vec3(.17,.25,.29)*trailingLace*.5;
-        color=mix(color,deep,smoothstep(.82,1.,tide));
+        color=mix(color,deep,smoothstep(.93,1.,tide));
         gl_FragColor=vec4(color,1.);
       }`,
     uniforms, depthTest:false, depthWrite:false,
@@ -155,7 +157,7 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
   function pointerLeave(){previous.set(-2,-2);targetImpulse.set(0,0);}
   function resize(){
     const w=hero.clientWidth,h=hero.clientHeight;
-    renderer.dpr=Math.min(devicePixelRatio||1,1.5,2560/w,1600/h,Math.sqrt(2400000/(w*h)));
+    renderer.dpr=Math.min(devicePixelRatio||1,touch.matches ? 1 : 1.5,2560/w,1600/h,Math.sqrt(2400000/(w*h)));
     renderer.setSize(w,h);uniforms.viewAspect.value=w/h;
   }
   // A responsive picture can change its source when the viewport crosses 700px.
@@ -164,11 +166,13 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
     frame=0;
     if(!visible||document.hidden||reduced.matches||destroyed){canvas.dataset.running='false';return;}
     const tide=Number(hero.dataset.tideProgress || 0);
-    const moving=Math.abs(tide-uniforms.tide.value)>.0001 || elapsed-lastRipple<3.4;
+    const leadTide=Number(hero.dataset.leadTideProgress || 0);
+    const moving=Math.abs(tide-uniforms.tide.value)>.0001 || Math.abs(leadTide-uniforms.leadTide.value)>.0001 || elapsed-lastRipple<3.4;
     if(now-last>=(moving?15:40)){
       elapsed+=Math.min((now-last)/1000,.06);last=now;
       uniforms.time.value=elapsed;
       uniforms.tide.value=tide;
+      uniforms.leadTide.value=leadTide;
       uniforms.impulse.value.lerp(targetImpulse,.09);targetImpulse.multiply(.94);
       renderer.render({scene});canvas.classList.add('ready');canvas.dataset.frames=String(++ticks);
     }

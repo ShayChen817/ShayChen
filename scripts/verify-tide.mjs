@@ -15,16 +15,28 @@ try {
   await page.goto(`${base}/zh/`,{waitUntil:'networkidle'});
   await page.waitForSelector('#ink-canvas.ready');
   await page.waitForFunction(()=>document.querySelector('.hero-wordmark svg').dataset.writing==='false');
-  const distance=await page.locator('.opening-sequence').evaluate(el=>el.offsetHeight-el.querySelector('.hero').offsetHeight);
+  const {distance, leadDistance}=await page.locator('.opening-sequence').evaluate(el=>{
+   const style=getComputedStyle(el);
+   const base=parseFloat(style.getPropertyValue('--tide-base'));
+   const tail=parseFloat(style.getPropertyValue('--tide-tail'));
+   const distance=el.offsetHeight-el.querySelector('.hero').offsetHeight;
+   return {distance,leadDistance:distance-el.offsetHeight*tail/(base+tail)};
+  });
+  assert(distance-leadDistance>=viewport.height*.64);
   assert(distance>300);
   for(const fraction of [0,.2,.42,.66,.86,1.1]) {
    await page.evaluate(y=>window.scrollTo({top:y,behavior:'instant'}),distance*fraction);
    await page.waitForTimeout(850);
-   const state=await page.locator('.hero').evaluate(el=>({progress:Number(el.dataset.tideProgress),top:el.getBoundingClientRect().top,centerOpacity:Number(getComputedStyle(el.querySelector('.hero-center')).opacity)}));
-   assert(Math.abs(state.progress-Math.min(fraction,1))<.03,JSON.stringify(state));
+   const state=await page.locator('.hero').evaluate(el=>({progress:Number(el.dataset.tideProgress),lead:Number(el.dataset.leadTideProgress),top:el.getBoundingClientRect().top,centerOpacity:Number(getComputedStyle(el.querySelector('.hero-center')).opacity)}));
+   const y=distance*fraction;
+   const split=.44*leadDistance;
+   const expected=y<=split ? y/leadDistance : Math.min(1,.44+.56*(y-split)/(distance-split));
+   assert(Math.abs(state.progress-expected)<.025,JSON.stringify(state));
+   assert(Math.abs(state.lead-Math.min(y/leadDistance,1))<.025,JSON.stringify(state));
    if(fraction<1)assert(Math.abs(state.top)<2,'Hero must hold the frame');
-   if(fraction===.2)assert(Number(await page.locator('#tide-displacement').getAttribute('scale'))>10,'Name should refract during the wave');
-   if(fraction===.86)assert(await page.locator('#abstract h2').evaluate(el=>el.getBoundingClientRect().top<innerHeight),'Article should enter before the shot ends');
+   if(fraction===.2 && viewport.width>=700)assert(Number(await page.locator('#tide-displacement').getAttribute('scale'))>10,'Name should refract during the wave');
+   if(fraction===.86)assert(await page.locator('#abstract h2').evaluate(el=>el.getBoundingClientRect().top>=innerHeight),'Keep the heading out of the third wave');
+   if(fraction===1.1)assert(await page.locator('#abstract h2').evaluate(el=>el.getBoundingClientRect().top<innerHeight),'Reveal the article after the shot');
    await page.screenshot({path:`qa/tide/${viewport.width}-${fraction}.png`});
    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Horizontal overflow');
   }

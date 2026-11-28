@@ -49,13 +49,15 @@ try {
       assert.equal(await page.locator('.chapter-mark').count(),0);
       assert((await page.locator('.home-mark img').getAttribute('src')).endsWith('/portrait-cutout-128.webp'));
       assert.equal(await page.locator('.hero-center .hero-location').innerText(),locale==='en'?'From Beijing · Based in Leuven, Belgium':'来自北京 · 现居比利时鲁汶');
-      for(const number of ['+32456777145','+8618701126817']){
-        const phone=page.locator(`.hero a[href="tel:${number}"]`);
-        assert.equal(await page.locator(`a[href="tel:${number}"]`).count(),3);
-        if(viewport.width>=700) await phone.hover();
-        await page.waitForTimeout(300);
-        assert.equal(await phone.locator('.country-flag').evaluate(el=>getComputedStyle(el).opacity),'1');
-      }
+      const dialLinks = page.locator('a[href^="tel:"]');
+      const togglePhones = page.locator('.phone-toggle');
+      assert.equal(await dialLinks.count(), 0);
+      await togglePhones.click();
+      assert.equal(await dialLinks.count(), 2);
+      assert.equal(await dialLinks.first().getAttribute('href'), 'tel:+32456777145');
+      await togglePhones.click();
+      assert.equal(await dialLinks.count(), 0);
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
       assert.equal(await page.locator('img[src*="stage-"], img[src*="-color.webp"], img[src*="seal.svg"]').count(),0);
       assert(await page.locator('.hero a[href="https://github.com/ShayChen817"]').count()>0);
       const trigger=page.locator('.name-ink-trigger');

@@ -16,7 +16,9 @@ Astro generates a Content Security Policy with script hashes during the build.
 Scripts, fonts, images and network requests are restricted to local resources
 (images/fonts also allow data URLs). Inline style attributes remain enabled for
 GSAP animations and theme variables. Email and phone numbers are omitted from
-structured metadata, but remain public in the contact UI and downloadable CV.
+structured metadata. The public CV contains no phone numbers. The contact section
+creates dial links on request from encoded values. Automated browsers can also
+activate this control or decode those values.
 The public GitHub repository also exposes source content and assets.
 
 On Vercel, `vercel.json` additionally sets response headers to block framing,
