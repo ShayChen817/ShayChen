@@ -39,11 +39,9 @@ export function initTide() {
     hero!.style.setProperty('--aperture', (Math.sin(tide * Math.PI) * .075).toFixed(5));
     hero!.dataset.tideProgress = tide.toFixed(4);
     hero!.dataset.leadTideProgress = lead.toFixed(4);
-    if (touch.matches) {
-      hero!.style.setProperty('--first-crest', `${118 - 136 * smooth(.02, .94, lead)}%`);
-      hero!.style.setProperty('--second-crest', `${118 - 136 * smooth(.26, .98, lead)}%`);
-      hero!.style.setProperty('--third-crest', `${122 - 124 * smooth(tailStart, 1, tide)}%`);
-    }
+    hero!.style.setProperty('--first-crest', `${118 - 136 * smooth(.02, .94, lead)}%`);
+    hero!.style.setProperty('--second-crest', `${118 - 136 * smooth(.26, .98, lead)}%`);
+    hero!.style.setProperty('--third-crest', `${122 - 124 * smooth(tailStart, 1, tide)}%`);
     if (!touch.matches) displacement?.setAttribute('scale', (Math.sin(retreat * Math.PI) * 42).toFixed(2));
     // Faded controls should not intercept a click on the incoming article.
     controls.forEach(el => {

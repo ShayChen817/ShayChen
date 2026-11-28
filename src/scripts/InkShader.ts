@@ -47,15 +47,18 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
         float wake=exp(-dot(delta,delta)*13.);
         // A diagonal shoreline with multiple frequencies, rather than a straight wipe.
         vec2 sea=vec2(vUv.x*viewAspect,vUv.y);
+        // Frame the same shoreline across the full width of landscape and portrait screens.
+        vec2 wave=vec2(vUv.x*1.6,vUv.y);
+        float waveTime=tide*1.2;
         // Long, crossing surface waves keep the water alive even without input.
         // They are separate from the scroll tide, so holding still never advances it.
         float surfacePhase=sea.x*9.+sea.y*14.-time*.48;
         float crossPhase=sea.x*-6.+sea.y*11.-time*.32;
         float surface=sin(surfacePhase+flow.x*.45)*.65+sin(crossPhase)*.35;
         vec2 surfaceFlow=vec2(cos(surfacePhase)*.7-sin(crossPhase)*.3,surface);
-        float turbulence=fbm(sea*4.+vec2(-t*.6,t*.3));
-        float shore=advance*1.65-.28 + .105*sin(sea.x*3.2+t)
-          + .045*sin(sea.x*8.5-t*1.7) + (turbulence-.5)*.19;
+        float turbulence=fbm(wave*4.+vec2(-waveTime*.6,waveTime*.3));
+        float shore=advance*1.65-.28 + .105*sin(wave.x*3.2+waveTime)
+          + .045*sin(wave.x*8.5-waveTime*1.7) + (turbulence-.5)*.19;
         float depth=shore-vUv.y;
         float crest=exp(-abs(depth)*25.)*energy;
         float swell=sin(depth*25.-t*4.)*exp(-abs(depth)*5.)*energy;
@@ -63,7 +66,7 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
         float nearAdvance=smoothstep(.26,.98,leadTide);
         float nearEnergy=sin(nearAdvance*3.14159265);
         float nearShore=nearAdvance*1.65-.30
-          -.085*sin(sea.x*4.1-t*.8)+.035*sin(sea.x*11.+t*1.3)
+          -.085*sin(wave.x*4.1-waveTime*.8)+.035*sin(wave.x*11.+waveTime*1.3)
           +(turbulence-.5)*.13;
         float nearDepth=nearShore-vUv.y;
         float nearCrest=exp(-abs(nearDepth)*31.)*nearEnergy;
@@ -71,12 +74,11 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
         // The final wave waits until the latter half, leaving space between crests.
         float trailingAdvance=smoothstep(.57,1.,tide);
         float trailingEnergy=sin(trailingAdvance*3.14159265);
-        float portrait=1.-smoothstep(.65,1.05,viewAspect);
-        float trailingShore=trailingAdvance*mix(1.47,1.34,portrait)-.30
-          +.075*sin(sea.x*2.7+t*.55)-.03*sin(sea.x*9.-t)
+        float trailingShore=trailingAdvance*1.47-.30
+          +.075*sin(wave.x*2.7+waveTime*.55)-.03*sin(wave.x*9.-waveTime)
           +(turbulence-.5)*.11;
         float trailingDepth=trailingShore-vUv.y;
-        float trailingCrest=exp(-abs(trailingDepth)*mix(34.,26.,portrait))*trailingEnergy;
+        float trailingCrest=exp(-abs(trailingDepth)*34.)*trailingEnergy;
         float trailingSwell=sin(trailingDepth*28.-t*2.)
           *exp(-abs(trailingDepth)*8.)*trailingEnergy;
         uv+=(flow*.0065+surfaceFlow*cover*.005+impulse*cover*wake*.012);
@@ -99,7 +101,7 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
         }
         vec3 ink=texture2D(photograph,clamp(uv,vec2(.001),vec2(.999))).rgb;
         // Cold mineral blue and silver foam stay within the original ink palette.
-        float veins=fbm(sea*vec2(14.,28.)+vec2(t,-t*2.));
+        float veins=fbm(wave*vec2(14.,28.)+vec2(waveTime,-waveTime*2.));
         float foam=crest*smoothstep(.26,.69,veins);
         float lace=exp(-abs(depth+.012+veins*.025)*95.)*energy;
         vec3 deep=vec3(.04706,.05098,.06275);
@@ -124,7 +126,7 @@ export async function initInk(canvas: HTMLCanvasElement, hero: HTMLElement) {
         color=mix(color,color*.76+deep*.24,
           smoothstep(-.02,.1,trailingDepth)*trailingEnergy*.4);
         color+=vec3(.12,.19,.23)*exp(-abs(trailingDepth-.035)*18.)*trailingEnergy;
-        color+=vec3(.35,.45,.49)*trailingFoam*mix(.8,1.12,portrait)
+        color+=vec3(.35,.45,.49)*trailingFoam*.8
           +vec3(.17,.25,.29)*trailingLace*.5;
         color=mix(color,deep,smoothstep(.93,1.,tide));
         gl_FragColor=vec4(color,1.);
