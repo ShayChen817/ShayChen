@@ -5,8 +5,46 @@ import Flag from './Flag.astro';
 interface Props { locale:Locale }
 const { locale }=Astro.props;
 ---
-<div class="phone-links mono">
-  {identity.phones.map(phone=><a class="phone-number" href={`tel:${phone.href}`} aria-label={`${phone[locale]} · ${phone.number}`}>
-    <span class="phone-country"><Icon name="phone" size={14}/><Flag country={phone.country}/></span><span>{phone.number}</span>
-  </a>)}
+<button class="phone-toggle mono" type="button" hidden aria-expanded="false" aria-controls="phone-list"
+  data-hide={locale === 'en' ? 'Hide phone numbers' : '收起电话号码'}>
+  {locale === 'en' ? 'Show phone numbers' : '查看电话号码'}
+</button>
+<div id="phone-list" class="phone-links mono" hidden>
+  {identity.phones.map(phone => <span class="phone-entry" data-contact={btoa(phone.number)}>
+    <a class="phone-number"><span class="phone-country"><Icon name="phone" size={14}/><Flag country={phone.country}/></span><span>{phone[locale]}</span><span class="digits"></span></a>
+  </span>)}
 </div>
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('.phone-toggle');
+  const list = document.getElementById('phone-list');
+  if (toggle && list) {
+    const showLabel = toggle.textContent.trim();
+    toggle.hidden = false;
+    toggle.addEventListener('click', () => {
+      const opening = list.hidden;
+      for (const entry of list.querySelectorAll<HTMLElement>('.phone-entry')) {
+        const link = entry.querySelector('a')!;
+        const digits = entry.querySelector('.digits')!;
+        if (opening) {
+          const number = atob(entry.dataset.contact!);
+          digits.textContent = number;
+          link.href = 'tel:' + number.replace(/\s/g, '');
+        } else {
+          link.removeAttribute('href');
+          digits.textContent = '';
+        }
+      }
+      list.hidden = !opening;
+      toggle.setAttribute('aria-expanded', String(opening));
+      toggle.textContent = opening ? toggle.dataset.hide! : showLabel;
+    });
+  }
+</script>
+<style>
+  [hidden] { display: none; }
+  .phone-toggle { padding: .65em 0; color: var(--rice-dim); font: inherit; cursor: pointer; background: transparent; border: 0; text-decoration: underline; text-underline-offset: .25em; }
+  @media (prefers-reduced-motion: no-preference) {
+    .phone-links:not([hidden]) { animation: reveal-phone .32s ease-out; }
+    @keyframes reveal-phone { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  }
+</style>
